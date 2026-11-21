@@ -48,6 +48,102 @@ let personCloakPalettes;
 let lastPeopleUpdate = performance.now();
 let gameplayUpdates = 0;
 
+// Mobile analogue input, independent of keyboard input.
+const touchMove = { x: 0, y: 0 };
+const touchLook = { x: 0, y: 0 };
+
+function InitTouchControls() {
+    const resetters = [];
+
+    function bindStick(id, input) {
+        const pad = document.getElementById(id);
+        const knob = pad.querySelector('.touch-knob');
+        let pointer = null;
+
+        function reset() {
+            const oldPointer = pointer;
+            pointer = null;
+            input.x = input.y = 0;
+            knob.style.transform = 'translate(-50%, -50%)';
+            if (oldPointer !== null && pad.hasPointerCapture(oldPointer)) {
+                pad.releasePointerCapture(oldPointer);
+            }
+        }
+
+        function update(e) {
+            const rect = pad.getBoundingClientRect();
+            const radius = rect.width * 0.32;
+            const dx = (e.clientX - rect.left - rect.width / 2) / radius;
+            const dy = (e.clientY - rect.top - rect.height / 2) / radius;
+            const length = Math.hypot(dx, dy);
+            const divisor = Math.max(1, length);
+            const x = dx / divisor;
+            const y = dy / divisor;
+            knob.style.transform = `translate(-50%, -50%) translate(${x * radius}px, ${y * radius}px)`;
+
+            // Small dead zone, with a continuous transition outside it.
+            const magnitude = Math.min(1, length);
+            const strength = Math.max(0, (magnitude - 0.12) / 0.88);
+            input.x = length ? dx / length * strength : 0;
+            input.y = length ? dy / length * strength : 0;
+        }
+
+        pad.addEventListener('pointerdown', e => {
+            if (pointer !== null) return;
+            e.preventDefault();
+            pointer = e.pointerId;
+            pad.setPointerCapture(pointer);
+            update(e);
+        });
+        pad.addEventListener('pointermove', e => {
+            if (e.pointerId === pointer) update(e);
+        });
+        for (const event of ['pointerup', 'pointercancel', 'lostpointercapture']) {
+            pad.addEventListener(event, e => {
+                if (e.pointerId === pointer) reset();
+            });
+        }
+        resetters.push(reset);
+    }
+
+    bindStick('touchMove', touchMove);
+    bindStick('touchLook', touchLook);
+
+    function resetControls() {
+        for (const reset of resetters) reset();
+    }
+    window.addEventListener('blur', resetControls);
+    window.addEventListener('orientationchange', resetControls);
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) resetControls();
+    });
+}
+
+function ControlTouchMovement(dt) {
+    // Right stick: yaw and pitch, in degrees per second.
+    const touchTurnSpeed = 100;
+    const touchPitchSpeed = 65;
+    if (touchLook.x !== 0) {
+        camera_angle = (camera_angle + touchLook.x * touchTurnSpeed * dt + 360) % 360;
+    }
+    if (touchLook.y !== 0) {
+        y_camera_angle = Math.max(-35, Math.min(55,
+            y_camera_angle + touchLook.y * touchPitchSpeed * dt));
+    }
+
+    // Left stick: use the same inverse camera coordinates as the keyboard.
+    const forward = -touchMove.y;
+    const sideways = touchMove.x;
+    if (forward === 0 && sideways === 0) return;
+
+    const angle = camera_angle * Math.PI / 180;
+    const distance = (player_speed + acceleration) * 240 * dt;
+
+    x_location -= (Math.sin(angle) * forward + Math.cos(angle) * sideways) * distance;
+    z_location += (Math.cos(angle) * forward - Math.sin(angle) * sideways) * distance;
+}
+
+
 window.addEventListener("keydown", checkKeyPressed, false);
 window.addEventListener("keyup", checkKeyUnPressed, false);
 
@@ -913,6 +1009,7 @@ function start() {
     );
 
     ResizeCanvas();
+    InitTouchControls();
 
     window.addEventListener("resize", ResizeCanvas);
 
@@ -1019,6 +1116,7 @@ function GameplayLoop(dt) {
     gameplayUpdates++;
 
     ControlPlayerMovement(dt);
+    ControlTouchMovement(dt);
 }
 
 function checkKeyUnPressed(e) {
