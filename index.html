@@ -89,26 +89,6 @@ BODY,HTML {background-color: black; width:100%; height:100%; border: 0px; paddin
 <!-- Fragment Shader -->
 <script id="shader-fs" type="x-shader/x-fragment">
 
-/*#ifdef GL_ES
-precision mediump float;
-#endif
-
-uniform sampler2D uSampler;
-
-varying mediump vec2 vTextureCoord;
-varying mediump float vLight;
-
-void main(void) {
-
-    vec4 colour = texture2D(uSampler, vTextureCoord);
-
-    gl_FragColor = vec4(
-        colour.rgb * vLight,
-        colour.a
-    );
-}*/
-
-
 #ifdef GL_ES
 precision mediump float;
 #endif
@@ -124,53 +104,20 @@ void main(void) {
 
     vec4 colour = texture2D(uSampler, vTextureCoord);
 
-    /*if (uTerrainPatch > 0.5) {
+    if (uTerrainPatch > 0.5) {
 
         float patch = vTextureCoord.x;
 
-        // Three subtle grass colour variations.
-        vec3 deepGreen = vec3(0.78, 0.94, 0.75);
-        vec3 freshGreen = vec3(1.00, 1.00, 1.00);
-        vec3 oliveGreen = vec3(1.10, 1.02, 0.72);
+        vec3 darkGrass = vec3(0.12, 0.42, 0.12);
+        //vec3 goldenGrass = vec3(0.65, 0.65, 0.18);
+        vec3 goldenGrass = vec3(0.56, 0.60, 0.16);
 
-        // Blend the colours smoothly.
-        vec3 tint = mix(
-            deepGreen,
-            freshGreen,
-            smoothstep(0.20, 0.50, patch)
+        colour.rgb = mix(
+            darkGrass,
+            goldenGrass,
+            smoothstep(0.35, 0.65, patch)
         );
-
-        tint = mix(
-            tint,
-            oliveGreen,
-            smoothstep(0.50, 0.80, patch)
-        );
-
-        colour.rgb *= tint;
-    }*/
-
-
-if (uTerrainPatch > 0.5) {
-
-    float patch = vTextureCoord.x;
-
-    vec3 darkGrass = vec3(0.12, 0.42, 0.12);
-    //vec3 goldenGrass = vec3(0.65, 0.65, 0.18);
-    vec3 goldenGrass = vec3(0.56, 0.60, 0.16);
-
-    colour.rgb = mix(
-        darkGrass,
-        goldenGrass,
-        smoothstep(0.35, 0.65, patch)
-    );
-}
-
-
-    /*gl_FragColor = vec4(
-        colour.rgb * vLight,
-        colour.a
-    );*/
-
+    }
 
     // Gentle atmospheric distance fog.
     float fog = smoothstep(
@@ -180,7 +127,6 @@ if (uTerrainPatch > 0.5) {
     );
 
     // Soft blue countryside haze.
-    //vec3 fogColour = vec3(0.62, 0.78, 0.90);
     vec3 fogColour = vec3(0.76, 0.87, 0.97);
 
     // Apply sunlight first, then blend into the haze.
@@ -221,7 +167,7 @@ void main(void) {
                   vec4(aVertexPosition, 1.0);
 
     vec4 cameraPosition = uMVMatrix * vec4(aVertexPosition, 1.0);
-vFogDistance = length(cameraPosition.xyz);
+    vFogDistance = length(cameraPosition.xyz);
 
     vTextureCoord = aTextureCoord;
 
