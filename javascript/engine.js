@@ -121,8 +121,8 @@ function InitTouchControls() {
 
 function ControlTouchMovement(dt) {
     // Right stick: yaw and pitch, in degrees per second.
-    const touchTurnSpeed = 30;
-    const touchPitchSpeed = 15;
+    const touchTurnSpeed = 45;
+    const touchPitchSpeed = 30;
     if (touchLook.x !== 0) {
         camera_angle = (camera_angle + touchLook.x * touchTurnSpeed * dt + 360) % 360;
     }
