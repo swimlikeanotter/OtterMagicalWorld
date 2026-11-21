@@ -121,8 +121,8 @@ function InitTouchControls() {
 
 function ControlTouchMovement(dt) {
     // Right stick: yaw and pitch, in degrees per second.
-    const touchTurnSpeed = 100;
-    const touchPitchSpeed = 65;
+    const touchTurnSpeed = 45;
+    const touchPitchSpeed = 30;
     if (touchLook.x !== 0) {
         camera_angle = (camera_angle + touchLook.x * touchTurnSpeed * dt + 360) % 360;
     }
@@ -698,25 +698,23 @@ let lastFrameCheck = performance.now();
 function FrameMonitor() {
 
   console.log("Gameplay updates:", gameplayUpdates);
-gameplayUpdates = 0;
 
-    const now = performance.now();
+  gameplayUpdates = 0;
 
-    const elapsed = (now - lastFrameCheck) / 1000;
+  const now = performance.now();
 
-    fps = Math.round(frames / elapsed);
+  const elapsed = (now - lastFrameCheck) / 1000;
 
-    frames = 0;
+  fps = Math.round(frames / elapsed);
 
-    lastFrameCheck = now;
+  frames = 0;
 
-    UpdateStats();
+  lastFrameCheck = now;
+
+  UpdateStats();
 }
 
 function generatePerson(x, z) {
-
-    /*const ground = terrainHeight(x, z);
-    const scale = 0.65;*/
 
     const scale = 0.65;
 
@@ -1052,7 +1050,7 @@ function GraphicsLoop() {
           0.05
       );
 
-lastPeopleUpdate = now;
+      lastPeopleUpdate = now;
 
       loadIdentity();
 
@@ -1528,7 +1526,6 @@ function moveRotate(angle, v) {
   movementMatrix = rotateMatrix(inRadians,v,movementMatrix);
 }
 
-
 function regionalNoise(x, z, scale) {
 
     const gx = x / scale;
@@ -1748,8 +1745,6 @@ function generateTree(x, z) {
             );
         }
     }
-
-
     return {trunk,crown};
 }
 
